@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#070b14"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="LinguaPanel"/>
@@ -11,491 +12,296 @@
 <title>LinguaPanel</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --navy: #070b14;
-    --navy-2: #0d1525;
-    --navy-3: #111d30;
-    --navy-4: #162240;
-    --cyan: #00e5ff;
-    --cyan-dim: #00b8cc;
-    --cyan-faint: rgba(0,229,255,0.08);
-    --cyan-faint2: rgba(0,229,255,0.15);
-    --yellow: #ffd166;
-    --text: #e2eaf5;
-    --text-dim: #7a99bb;
-    --text-faint: #3d5473;
-    --border: rgba(0,229,255,0.18);
-    --border-dim: rgba(0,229,255,0.08);
-    --radius: 4px;
-    --font-head: 'Instrument Serif', Georgia, serif;
-    --font-ui: 'JetBrains Mono', monospace;
-  }
+:root {
+  --navy:       #070b14;
+  --navy-2:     #0d1525;
+  --navy-3:     #111d30;
+  --navy-4:     #162240;
+  --cyan:       #00e5ff;
+  --cyan-dim:   #00b8cc;
+  --cyan-faint: rgba(0,229,255,0.08);
+  --cyan-faint2:rgba(0,229,255,0.15);
+  --yellow:     #ffd166;
+  --text:       #e2eaf5;
+  --text-dim:   #7a99bb;
+  --text-faint: #3d5473;
+  --border:     rgba(0,229,255,0.18);
+  --border-dim: rgba(0,229,255,0.08);
+  --radius:     4px;
+  --font-head:  'Instrument Serif', Georgia, serif;
+  --font-ui:    'JetBrains Mono', monospace;
+  --nav-h:      60px;
+  --header-h:   56px;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; overflow:hidden; }
+body{
+  background:var(--navy);
+  color:var(--text);
+  font-family:var(--font-ui);
+  font-size:13px;
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* grid bg */
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none; z-index:0;
+}
 
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* corners */
+.corner{position:fixed;width:22px;height:22px;z-index:10;}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--cyan);}
+.corner::before{width:100%;height:2px;top:0;}
+.corner::after{width:2px;height:100%;top:0;}
+.corner.tl{top:8px;left:8px;}
+.corner.tr{top:8px;right:8px;transform:scaleX(-1);}
+.corner.bl{bottom:70px;left:8px;transform:scaleY(-1);}
+.corner.br{bottom:70px;right:8px;transform:scale(-1);}
 
-  /* ── GRID BACKGROUND ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+/* ruler */
+.ruler-top{
+  position:fixed;top:0;left:0;right:0;height:4px;
+  background:repeating-linear-gradient(90deg,var(--cyan) 0,var(--cyan) 1px,transparent 1px,transparent 20px);
+  opacity:0.25;z-index:10;
+}
 
-  /* ── VIEWFINDER CORNERS ── */
-  .corner { position: fixed; width: 28px; height: 28px; z-index: 10; }
-  .corner::before, .corner::after {
-    content: '';
-    position: absolute;
-    background: var(--cyan);
-  }
-  .corner::before { width: 100%; height: 2px; top: 0; }
-  .corner::after  { width: 2px; height: 100%; top: 0; }
-  .corner.tl { top: 12px; left: 12px; }
-  .corner.tr { top: 12px; right: 12px; transform: scaleX(-1); }
-  .corner.bl { bottom: 12px; left: 12px; transform: scaleY(-1); }
-  .corner.br { bottom: 12px; right: 12px; transform: scale(-1); }
+/* ── HEADER ── */
+header{
+  position:relative;z-index:5;
+  height:var(--header-h);
+  padding:0 16px;
+  border-bottom:1px solid var(--border-dim);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.logo-block{display:flex;align-items:baseline;gap:10px;}
+.logo-label{font-size:9px;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
+.logo-title{font-family:var(--font-head);font-size:22px;font-style:italic;color:var(--text);}
+.status-bar{display:flex;gap:14px;align-items:center;}
+.status-dot{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-dim);letter-spacing:0.08em;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);transition:background 0.3s;}
+.dot.active{background:var(--cyan);}
+.dot.warn{background:var(--yellow);}
 
-  /* ── RULER TICKS ── */
-  .ruler-top {
-    position: fixed; top: 0; left: 0; right: 0; height: 6px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--cyan) 0px, var(--cyan) 1px,
-      transparent 1px, transparent 20px
-    );
-    opacity: 0.3;
-    z-index: 10;
-  }
+/* ── SCROLL AREA ── */
+.scroll-area{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  position:relative;z-index:5;
+}
+.scroll-area::-webkit-scrollbar{width:3px;}
+.scroll-area::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:2px;}
 
-  /* ── HEADER ── */
-  header {
-    position: relative; z-index: 5;
-    padding: 28px 24px 16px;
-    border-bottom: 1px solid var(--border-dim);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
+/* ── PANELS ── */
+.panel{display:none;padding:16px;padding-bottom:8px;}
+.panel.active{display:block;}
 
-  .logo-block { display: flex; flex-direction: column; gap: 2px; }
-  .logo-label {
-    font-family: var(--font-ui);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--cyan);
-    text-transform: uppercase;
-  }
-  .logo-title {
-    font-family: var(--font-head);
-    font-size: 26px;
-    font-style: italic;
-    color: var(--text);
-    line-height: 1;
-  }
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:relative;z-index:10;
+  height:var(--nav-h);
+  background:var(--navy-2);
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:stretch;
+  flex-shrink:0;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-btn{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:var(--text-faint);
+  font-family:var(--font-ui);
+  font-size:9px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  transition:color 0.2s;
+  padding:8px 4px;
+}
+.nav-btn.active{color:var(--cyan);}
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;}
 
-  .status-bar {
-    display: flex; gap: 16px; align-items: center;
-  }
-  .status-dot {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 10px; color: var(--text-dim);
-    letter-spacing: 0.1em;
-  }
-  .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-faint);
-    transition: background 0.3s;
-  }
-  .dot.active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-  .dot.warn { background: var(--yellow); }
+/* ── PANEL LABEL ── */
+.panel-label{
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--cyan-dim);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.panel-label::after{content:'';flex:1;height:1px;background:var(--border-dim);}
 
-  /* ── TABS ── */
-  .tabs {
-    position: relative; z-index: 5;
-    display: flex;
-    border-bottom: 1px solid var(--border-dim);
-    padding: 0 24px;
-    gap: 0;
-  }
-  .tab {
-    padding: 12px 20px;
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    cursor: pointer;
-    border: none;
-    background: none;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
-    position: relative;
-    top: 1px;
-  }
-  .tab:hover { color: var(--text-dim); }
-  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+/* ── LANG TOGGLE ── */
+.lang-toggle{
+  display:flex;background:var(--navy-2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:12px;width:100%;
+}
+.lang-btn{
+  flex:1;padding:8px;font-family:var(--font-ui);font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;border:none;
+  background:none;color:var(--text-dim);cursor:pointer;transition:all 0.2s;
+}
+.lang-btn.active{background:var(--cyan-faint2);color:var(--cyan);}
 
-  /* ── MAIN CONTENT ── */
-  main {
-    position: relative; z-index: 5;
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+/* ── CHAT ── */
+.chat-window{
+  background:var(--navy-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  height:calc(100dvh - var(--header-h) - var(--nav-h) - 130px);
+  min-height:200px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:12px;
+  display:flex;flex-direction:column;gap:10px;
+  margin-bottom:10px;
+  scroll-behavior:smooth;
+}
+.chat-window::-webkit-scrollbar{width:3px;}
+.chat-window::-webkit-scrollbar-thumb{background:var(--text-faint);}
 
-  .panel { display: none; }
-  .panel.active { display: block; }
+.msg{
+  max-width:88%;padding:9px 12px;border-radius:var(--radius);
+  line-height:1.6;font-size:13px;animation:fadeUp 0.2s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;background:var(--navy-4);border:1px solid var(--border);color:var(--text);}
+.msg.bot{align-self:flex-start;background:var(--cyan-faint);border:1px solid var(--border);color:var(--text);}
+.msg.bot .msg-label{font-size:9px;letter-spacing:0.15em;color:var(--cyan);text-transform:uppercase;margin-bottom:4px;}
+.msg.thinking{opacity:0.5;font-style:italic;color:var(--text-dim);}
 
-  /* ── PANEL LABEL ── */
-  .panel-label {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--cyan-dim);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .panel-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-dim);
-  }
+.chat-input-row{display:flex;gap:8px;align-items:flex-end;}
+.chat-input{
+  flex:1;background:var(--navy-2);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);font-family:var(--font-ui);
+  font-size:13px;padding:10px 12px;resize:none;min-height:42px;max-height:100px;
+  outline:none;transition:border-color 0.2s;-webkit-appearance:none;
+}
+.chat-input:focus{border-color:var(--cyan);}
+.chat-input::placeholder{color:var(--text-faint);}
 
-  /* ── CHAT ── */
-  .chat-window {
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    height: 380px;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 12px;
-    scroll-behavior: smooth;
-  }
-  .chat-window::-webkit-scrollbar { width: 4px; }
-  .chat-window::-webkit-scrollbar-track { background: transparent; }
-  .chat-window::-webkit-scrollbar-thumb { background: var(--text-faint); border-radius: 2px; }
+/* ── BUTTON ── */
+.btn{
+  padding:10px 16px;font-family:var(--font-ui);font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;border-radius:var(--radius);
+  cursor:pointer;transition:all 0.15s;border:1px solid var(--cyan);
+  background:transparent;color:var(--cyan);white-space:nowrap;-webkit-appearance:none;
+}
+.btn:hover{background:var(--cyan-faint2);}
+.btn:active{transform:scale(0.97);}
+.btn.primary{background:var(--cyan);color:var(--navy);font-weight:700;}
+.btn.primary:hover{background:var(--cyan-dim);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
 
-  .msg {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: var(--radius);
-    line-height: 1.6;
-    font-size: 13px;
-    animation: fadeUp 0.2s ease;
-  }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* ── TRANSLATOR ── */
+.trans-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.trans-box{
+  background:var(--navy-2);border:1px solid var(--border);
+  border-radius:var(--radius);display:flex;flex-direction:column;margin-bottom:10px;
+}
+.trans-header{
+  padding:7px 12px;border-bottom:1px solid var(--border-dim);font-size:9px;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.trans-area{
+  background:transparent;border:none;color:var(--text);font-family:var(--font-ui);
+  font-size:13px;padding:12px;resize:none;
+  height:calc((100dvh - var(--header-h) - var(--nav-h) - 160px) / 2);
+  min-height:120px;outline:none;line-height:1.7;width:100%;-webkit-appearance:none;
+}
+.trans-area::placeholder{color:var(--text-faint);}
+.char-count{font-size:9px;color:var(--text-faint);padding:5px 12px;border-top:1px solid var(--border-dim);text-align:right;}
+.copy-btn{
+  background:none;border:none;cursor:pointer;color:var(--text-faint);
+  font-family:var(--font-ui);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;
+  padding:0;transition:color 0.2s;
+}
+.copy-btn:hover{color:var(--cyan);}
+.api-badge{
+  font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.api-badge.groq{color:var(--cyan);border-color:var(--cyan);}
+.api-badge.gemini{color:var(--yellow);border-color:var(--yellow);}
 
-  .msg.user {
-    align-self: flex-end;
-    background: var(--navy-4);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-  .msg.bot {
-    align-self: flex-start;
-    background: var(--cyan-faint);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-  .msg.bot .msg-label {
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    color: var(--cyan);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-  .msg.thinking { opacity: 0.5; font-style: italic; color: var(--text-dim); }
+/* ── SETTINGS ── */
+.settings-section{
+  background:var(--navy-2);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:14px;overflow:hidden;
+}
+.settings-title{
+  padding:10px 14px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--cyan);border-bottom:1px solid var(--border-dim);background:var(--cyan-faint);
+}
+.settings-row{
+  padding:12px 14px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--border-dim);
+  gap:10px;flex-wrap:wrap;
+}
+.settings-row:last-child{border-bottom:none;}
+.settings-row label{color:var(--text-dim);font-size:11px;letter-spacing:0.05em;}
+.settings-input{
+  flex:1;background:var(--navy-3);border:1px solid var(--border);
+  border-radius:var(--radius);color:var(--text);font-family:var(--font-ui);
+  font-size:12px;padding:8px 10px;outline:none;min-width:0;
+  transition:border-color 0.2s;-webkit-appearance:none;
+}
+.settings-input:focus{border-color:var(--cyan);}
+.settings-input::placeholder{color:var(--text-faint);}
+.save-notice{font-size:10px;color:var(--cyan);display:none;letter-spacing:0.1em;}
+.save-notice.show{display:inline;}
 
-  .chat-input-row {
-    display: flex; gap: 8px; align-items: flex-end;
-  }
-  .chat-input {
-    flex: 1;
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    padding: 10px 14px;
-    resize: none;
-    min-height: 42px;
-    max-height: 120px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .chat-input:focus { border-color: var(--cyan); }
-  .chat-input::placeholder { color: var(--text-faint); }
+/* ── INSTALL ── */
+.install-step{
+  padding:12px 14px;border-bottom:1px solid var(--border-dim);
+  display:flex;gap:12px;align-items:flex-start;
+}
+.install-step:last-child{border-bottom:none;}
+.step-num{
+  width:22px;height:22px;border-radius:50%;border:1px solid var(--cyan);
+  color:var(--cyan);font-size:10px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.step-text{font-size:12px;color:var(--text-dim);line-height:1.7;}
+.step-text strong{color:var(--text);}
+.install-status{
+  padding:12px 14px;font-size:11px;display:flex;
+  align-items:center;gap:8px;
+}
 
-  .lang-toggle {
-    display: flex;
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 12px;
-    width: fit-content;
-  }
-  .lang-btn {
-    padding: 6px 16px;
-    font-family: var(--font-ui);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border: none;
-    background: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-  }
-  .lang-btn.active {
-    background: var(--cyan-faint2);
-    color: var(--cyan);
-  }
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 16px;color:var(--text-faint);}
+.empty .icon{font-size:28px;margin-bottom:10px;opacity:0.4;}
+.empty p{font-size:12px;line-height:1.6;letter-spacing:0.05em;}
 
-  /* ── BUTTON ── */
-  .btn {
-    padding: 10px 18px;
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.15s;
-    border: 1px solid var(--cyan);
-    background: transparent;
-    color: var(--cyan);
-    white-space: nowrap;
-  }
-  .btn:hover { background: var(--cyan-faint2); }
-  .btn:active { transform: scale(0.97); }
-  .btn.primary { background: var(--cyan); color: var(--navy); font-weight: 700; }
-  .btn.primary:hover { background: var(--cyan-dim); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* ── TRANSLATOR ── */
-  .translator-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  @media (max-width: 600px) {
-    .translator-grid { grid-template-columns: 1fr; }
-  }
-
-  .trans-box {
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-  }
-  .trans-header {
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border-dim);
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--cyan);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .trans-area {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    padding: 14px;
-    resize: none;
-    min-height: 200px;
-    outline: none;
-    line-height: 1.7;
-    width: 100%;
-  }
-  .trans-area::placeholder { color: var(--text-faint); }
-  .trans-area[readonly] { color: var(--text); }
-
-  .char-count {
-    font-size: 9px;
-    color: var(--text-faint);
-    padding: 6px 12px;
-    border-top: 1px solid var(--border-dim);
-    text-align: right;
-  }
-
-  .trans-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-
-  /* ── SETTINGS ── */
-  .settings-section {
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .settings-title {
-    padding: 12px 16px;
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--cyan);
-    border-bottom: 1px solid var(--border-dim);
-    background: var(--cyan-faint);
-  }
-  .settings-row {
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-dim);
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .settings-row:last-child { border-bottom: none; }
-  .settings-row label {
-    color: var(--text-dim);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    min-width: 120px;
-  }
-  .settings-input {
-    flex: 1;
-    background: var(--navy-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 12px;
-    padding: 8px 12px;
-    outline: none;
-    min-width: 0;
-    transition: border-color 0.2s;
-  }
-  .settings-input:focus { border-color: var(--cyan); }
-  .settings-input::placeholder { color: var(--text-faint); }
-
-  .install-box {
-    background: var(--navy-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .install-box h3 {
-    font-family: var(--font-head);
-    font-size: 20px;
-    font-style: italic;
-    margin-bottom: 8px;
-    color: var(--cyan);
-  }
-  .install-box p {
-    color: var(--text-dim);
-    margin-bottom: 16px;
-    line-height: 1.6;
-    font-size: 12px;
-  }
-
-  .api-badge {
-    font-size: 9px;
-    padding: 2px 8px;
-    border-radius: 2px;
-    border: 1px solid;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .api-badge.groq { color: var(--cyan); border-color: var(--cyan); }
-  .api-badge.gemini { color: var(--yellow); border-color: var(--yellow); }
-
-  .save-notice {
-    font-size: 10px;
-    color: var(--cyan);
-    display: none;
-    letter-spacing: 0.1em;
-  }
-  .save-notice.show { display: inline; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--navy-3);
-    border: 1px solid var(--cyan);
-    border-radius: var(--radius);
-    padding: 10px 16px;
-    font-size: 11px;
-    color: var(--cyan);
-    z-index: 100;
-    letter-spacing: 0.08em;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: all 0.2s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: none; }
-
-  /* ── COPY BTN ── */
-  .copy-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-faint);
-    font-family: var(--font-ui);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .copy-btn:hover { color: var(--cyan); }
-
-  /* ── EMPTY STATE ── */
-  .empty {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--text-faint);
-  }
-  .empty .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
-  .empty p { font-size: 12px; line-height: 1.6; letter-spacing: 0.05em; }
-
-  /* ── SELECT ── */
-  select.settings-input {
-    cursor: pointer;
-  }
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--navy-3);border:1px solid var(--cyan);border-radius:var(--radius);
+  padding:8px 16px;font-size:11px;color:var(--cyan);z-index:200;
+  letter-spacing:0.08em;opacity:0;transition:all 0.2s;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -508,8 +314,8 @@
 
 <header>
   <div class="logo-block">
-    <span class="logo-label">System / v1.0</span>
     <span class="logo-title">LinguaPanel</span>
+    <span class="logo-label">v1.0</span>
   </div>
   <div class="status-bar">
     <div class="status-dot"><div class="dot" id="dot-groq"></div>GROQ</div>
@@ -517,525 +323,423 @@
   </div>
 </header>
 
-<nav class="tabs">
-  <button class="tab active" onclick="switchTab('chat')">Grammar Agent</button>
-  <button class="tab" onclick="switchTab('translate')">Translator</button>
-  <button class="tab" onclick="switchTab('settings')">Settings</button>
-</nav>
+<div class="scroll-area" id="scroll-area">
 
-<main>
-
-  <!-- ── CHAT PANEL ── -->
+  <!-- CHAT PANEL -->
   <div class="panel active" id="panel-chat">
-    <div class="panel-label">Grammar &amp; Writing Assistant</div>
-
+    <div class="panel-label">Grammar Agent</div>
     <div class="lang-toggle">
       <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN · English</button>
       <button class="lang-btn" id="lang-hi" onclick="setLang('hi')">IN · Hindi</button>
     </div>
-
     <div class="chat-window" id="chat-window">
       <div class="empty">
         <div class="icon">◈</div>
-        <p>Grammar agent ready.<br/>Paste text to improve, or ask anything about writing.</p>
+        <p>Grammar agent ready.<br/>Paste text to improve or ask anything about writing.</p>
       </div>
     </div>
-
     <div class="chat-input-row">
       <textarea class="chat-input" id="chat-input" rows="2"
-        placeholder="Paste your text or ask a grammar question…"
+        placeholder="Type or paste your text…"
         onkeydown="handleKey(event)"></textarea>
       <button class="btn primary" id="send-btn" onclick="sendChat()">Send</button>
     </div>
   </div>
 
-  <!-- ── TRANSLATE PANEL ── -->
+  <!-- TRANSLATE PANEL -->
   <div class="panel" id="panel-translate">
-    <div class="panel-label">EN → HI Translator · Unlimited Content</div>
-
+    <div class="panel-label">EN → HI Translator</div>
     <div class="trans-controls">
       <button class="btn primary" onclick="runTranslate()">Translate</button>
       <button class="btn" onclick="clearTranslator()">Clear</button>
       <span id="trans-api-badge" class="api-badge groq">GROQ</span>
       <span id="trans-status" style="color:var(--text-faint);font-size:10px;letter-spacing:0.08em;"></span>
     </div>
-
-    <div class="translator-grid">
-      <div class="trans-box">
-        <div class="trans-header">
-          English · Source
-          <button class="copy-btn" onclick="copyText('source-area')">Copy</button>
-        </div>
-        <textarea class="trans-area" id="source-area"
-          placeholder="Enter or paste English text here. No character limit."
-          oninput="updateCharCount()"></textarea>
-        <div class="char-count" id="char-count">0 chars</div>
+    <div class="trans-box">
+      <div class="trans-header">
+        English · Source
+        <button class="copy-btn" onclick="copyText('source-area')">Copy</button>
       </div>
-      <div class="trans-box">
-        <div class="trans-header">
-          हिन्दी · Output
-          <button class="copy-btn" onclick="copyText('output-area')">Copy</button>
-        </div>
-        <textarea class="trans-area" id="output-area" readonly
-          placeholder="Translation will appear here…"></textarea>
-        <div class="char-count" id="out-count">—</div>
+      <textarea class="trans-area" id="source-area"
+        placeholder="Enter English text here…"
+        oninput="updateCharCount()"></textarea>
+      <div class="char-count" id="char-count">0 chars</div>
+    </div>
+    <div class="trans-box">
+      <div class="trans-header">
+        हिन्दी · Output
+        <button class="copy-btn" onclick="copyText('output-area')">Copy</button>
       </div>
+      <textarea class="trans-area" id="output-area" readonly
+        placeholder="Hindi translation appears here…"></textarea>
+      <div class="char-count" id="out-count">—</div>
     </div>
   </div>
 
-  <!-- ── SETTINGS PANEL ── -->
+  <!-- SETTINGS PANEL -->
   <div class="panel" id="panel-settings">
-    <div class="panel-label">Configuration</div>
+    <div class="panel-label">Settings</div>
 
-    <div class="settings-section">
-      <div class="settings-title">Install App</div>
-
-      <!-- Auto-install button: shown only when browser fires beforeinstallprompt -->
-      <div class="settings-row" id="install-btn-row" style="display:none;">
-        <label style="color:var(--text-dim); font-size:11px;">Browser detected installable app</label>
-        <button class="btn primary" onclick="installApp()" id="install-btn">Install Now</button>
-      </div>
-
-      <div class="settings-row" id="install-status-row">
-        <span id="install-status-msg" style="font-size:11px; color:var(--text-dim); line-height:1.7;"></span>
-      </div>
-
-      <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:10px;">
-        <label style="color:var(--cyan); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">Android (Chrome)</label>
-        <label style="color:var(--text-dim); font-size:11px; line-height:1.7;">
-          1. Open this page in Chrome browser<br/>
-          2. Tap the 3-dot menu (⋮) at top right<br/>
-          3. Tap <strong style="color:var(--text);">Add to Home screen</strong><br/>
-          4. Tap <strong style="color:var(--text);">Install</strong> — done!
-        </label>
-      </div>
-
-      <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:10px; border-top: 1px solid var(--border-dim);">
-        <label style="color:var(--cyan); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">Desktop (Chrome / Edge)</label>
-        <label style="color:var(--text-dim); font-size:11px; line-height:1.7;">
-          1. Open this page in Chrome or Edge<br/>
-          2. Look for the <strong style="color:var(--text);">install icon (⊕)</strong> in the address bar<br/>
-          3. Click it and confirm — done!<br/>
-          <span style="color:var(--text-faint);">Or: 3-dot menu → Cast, save and share → Install page as app</span>
-        </label>
-      </div>
-
-      <div class="settings-row" style="border-top: 1px solid var(--border-dim);">
-        <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
-          Once installed, your Worker URL and settings persist — even after browser cache is cleared.
-        </label>
-      </div>
-    </div>
-
-    <!-- shown when Worker URL is saved -->
+    <!-- API STATUS (when worker set) -->
     <div class="settings-section" id="api-status-section" style="display:none;">
-      <div class="settings-title">API Key Status · via Worker Node</div>
-      <div class="settings-row">
-        <label><span class="api-badge groq">GROQ</span> &nbsp;Primary</label>
-        <span id="status-groq" style="font-size:11px; letter-spacing:0.08em;"></span>
+      <div class="settings-title">API Status · Worker Node <span style="float:right;" id="save-notice" class="save-notice">✓ Saved</span></div>
+      <div class="install-status">
+        <div class="dot" id="s-dot-groq"></div>
+        <span id="status-groq" style="font-size:11px;color:var(--text-dim);">GROQ — checking…</span>
+      </div>
+      <div class="install-status" style="border-top:1px solid var(--border-dim);">
+        <div class="dot" id="s-dot-gemini"></div>
+        <span id="status-gemini" style="font-size:11px;color:var(--text-dim);">GEMINI — checking…</span>
       </div>
       <div class="settings-row">
-        <label><span class="api-badge gemini">GEMINI</span> &nbsp;Fallback</label>
-        <span id="status-gemini" style="font-size:11px; letter-spacing:0.08em;"></span>
-      </div>
-      <div class="settings-row">
-        <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
-          Keys are stored securely in your Cloudflare Worker — not in the browser.
-        </label>
-        <button class="btn" onclick="checkWorkerStatus()" style="padding:7px 14px; white-space:nowrap;">Check Status</button>
+        <button class="btn" onclick="checkWorkerStatus()" style="padding:7px 12px;">Check Status</button>
       </div>
     </div>
 
-    <!-- shown when no Worker URL -->
+    <!-- API KEYS (when no worker) -->
     <div class="settings-section" id="api-keys-section">
-      <div class="settings-title">API Keys <span style="float:right;" id="save-notice" class="save-notice">✓ Saved</span></div>
+      <div class="settings-title">API Keys <span style="float:right;" id="save-notice-keys" class="save-notice">✓ Saved</span></div>
       <div class="settings-row">
-        <label><span class="api-badge groq">GROQ</span> &nbsp;Primary</label>
-        <input class="settings-input" type="password" id="key-groq"
-          placeholder="gsk_…" oninput="saveKeys()"/>
+        <label><span class="api-badge groq">GROQ</span></label>
+        <input class="settings-input" type="password" id="key-groq" placeholder="gsk_…" oninput="saveKeys()"/>
       </div>
       <div class="settings-row">
-        <label><span class="api-badge gemini">GEMINI</span> &nbsp;Fallback</label>
-        <input class="settings-input" type="password" id="key-gemini"
-          placeholder="AIza…" oninput="saveKeys()"/>
+        <label><span class="api-badge gemini">GEMINI</span></label>
+        <input class="settings-input" type="password" id="key-gemini" placeholder="AIza…" oninput="saveKeys()"/>
       </div>
     </div>
 
-
-
+    <!-- WORKER NODE -->
     <div class="settings-section">
       <div class="settings-title">Worker Node (Cloudflare) <span style="float:right;" id="worker-save-notice" class="save-notice">✓ Saved</span></div>
       <div class="settings-row">
-        <label>Worker URL</label>
-        <input class="settings-input" type="url" id="worker-url"
-          placeholder="https://your-worker.workers.dev"/>
-        <button class="btn primary" onclick="saveWorkerUrl()" style="padding:8px 14px;">Save</button>
+        <input class="settings-input" type="url" id="worker-url" placeholder="https://your-worker.workers.dev" style="margin-bottom:0;"/>
       </div>
-      <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
-        <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
-          Optional: Route API calls through your Cloudflare Worker to hide API keys from the browser.<br/>
-          If set, this URL is used instead of direct API calls. Keys stored in Worker environment vars.
+      <div class="settings-row">
+        <button class="btn primary" onclick="saveWorkerUrl()" style="width:100%;justify-content:center;">Save Worker URL</button>
+      </div>
+      <div class="settings-row">
+        <label style="color:var(--text-faint);font-size:10px;line-height:1.6;">
+          When set, API keys are stored in Cloudflare — not in the browser.
         </label>
       </div>
     </div>
 
+    <!-- INSTALL -->
     <div class="settings-section">
-      <div class="settings-title">Storage</div>
-      <div class="settings-row">
-        <label style="color:var(--text-dim);">API keys and settings are saved to localStorage — they persist after cache clear only if you install the app as a PWA.</label>
+      <div class="settings-title">Install App</div>
+      <div class="install-status" id="install-status-row">
+        <div class="dot" id="install-dot"></div>
+        <span id="install-status-msg" style="font-size:11px;color:var(--text-dim);">Checking…</span>
       </div>
-      <div class="settings-row">
-        <button class="btn" onclick="clearAll()" style="color:var(--yellow);border-color:var(--yellow);">Clear All Data</button>
+      <div class="settings-row" id="install-btn-row" style="display:none;">
+        <button class="btn primary" onclick="installApp()" style="width:100%;">⊕ Install App Now</button>
+      </div>
+      <div style="padding:4px 0;">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Android Chrome</strong><br/>Tap menu (⋮) → <strong>Add to Home screen</strong> → Install</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Desktop Chrome/Edge</strong><br/>Click <strong>⊕</strong> icon in address bar → Install</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>After install</strong><br/>Settings persist even after browser cache is cleared</div>
+        </div>
       </div>
     </div>
-  </div>
 
-</main>
+    <!-- DANGER -->
+    <div class="settings-section">
+      <div class="settings-title">Data</div>
+      <div class="settings-row">
+        <button class="btn" onclick="clearAll()" style="color:var(--yellow);border-color:var(--yellow);width:100%;">Clear All Saved Data</button>
+      </div>
+    </div>
+
+  </div><!-- /panel-settings -->
+
+</div><!-- /scroll-area -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-chat" onclick="switchTab('chat',this)">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Agent
+  </button>
+  <button class="nav-btn" id="nav-translate" onclick="switchTab('translate',this)">
+    <svg viewBox="0 0 24 24"><path d="M5 8l6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+    Translate
+  </button>
+  <button class="nav-btn" id="nav-settings" onclick="switchTab('settings',this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const STORAGE_KEY = 'linguapanel_v1';
+function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}; }catch{ return {}; } }
+function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify({...load(),...data})); }
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
-}
-function save(data) {
-  const merged = { ...load(), ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-}
-
-function initSettings() {
+/* ── INIT ── */
+function init(){
   const d = load();
-  if (d.groqKey) document.getElementById('key-groq').value = d.groqKey;
-  if (d.geminiKey) document.getElementById('key-gemini').value = d.geminiKey;
-  if (d.workerUrl) document.getElementById('worker-url').value = d.workerUrl;
+  if(d.groqKey) document.getElementById('key-groq').value = d.groqKey;
+  if(d.geminiKey) document.getElementById('key-gemini').value = d.geminiKey;
+  if(d.workerUrl) document.getElementById('worker-url').value = d.workerUrl;
   updateDots();
+  updateInstallStatus();
+  if(d.workerUrl) checkWorkerStatus();
 }
 
-function saveKeys() {
-  save({
-    groqKey: document.getElementById('key-groq').value.trim(),
-    geminiKey: document.getElementById('key-gemini').value.trim(),
-    workerUrl: document.getElementById('worker-url').value.trim(),
-  });
-  const n = document.getElementById('save-notice');
-  n.classList.add('show');
-  setTimeout(() => n.classList.remove('show'), 2000);
-  updateDots();
-}
-
-function updateDots() {
+/* ── DOTS ── */
+function updateDots(){
   const d = load();
-  const hasWorker = !!d.workerUrl;
-  // Toggle API key section vs status section
-  document.getElementById('api-keys-section').style.display = hasWorker ? 'none' : 'block';
-  document.getElementById('api-status-section').style.display = hasWorker ? 'block' : 'none';
-  // Header dots
-  document.getElementById('dot-groq').className = 'dot' + ((d.groqKey || hasWorker) ? ' active' : '');
-  document.getElementById('dot-gemini').className = 'dot' + ((d.geminiKey || hasWorker) ? ' active' : (d.groqKey ? '' : ' warn'));
-  // Status labels
-  if (hasWorker) {
-    document.getElementById('status-groq').innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
-    document.getElementById('status-gemini').innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
-  }
-}
-
-async function checkWorkerStatus() {
-  const d = load();
-  if (!d.workerUrl) return;
-  const groqEl = document.getElementById('status-groq');
-  const geminiEl = document.getElementById('status-gemini');
-  groqEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
-  geminiEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
-  try {
-    const res = await fetch(d.workerUrl.replace(/\/+$/, '') + '/status', { method: 'GET' });
-    if (res.ok) {
-      const json = await res.json();
-      groqEl.innerHTML = json.groq
-        ? '<span style="color:var(--cyan);">● Active</span>'
-        : '<span style="color:var(--yellow);">○ Key missing in Worker</span>';
-      geminiEl.innerHTML = json.gemini
-        ? '<span style="color:var(--cyan);">● Active</span>'
-        : '<span style="color:var(--yellow);">○ Key missing in Worker</span>';
-    } else {
-      throw new Error('Worker returned ' + res.status);
-    }
-  } catch(e) {
-    groqEl.innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
-    geminiEl.innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
-    toast('Tip: Add /status route to Worker for live check');
-  }
-}
-
-function saveWorkerUrl() {
-  const url = document.getElementById('worker-url').value.trim().replace(/\/+$/, '');
-  save({ workerUrl: url });
-  const n = document.getElementById('worker-save-notice');
-  n.classList.add('show');
-  setTimeout(() => n.classList.remove('show'), 2500);
-  toast('Worker URL saved ✓');
-  updateDots();
-}
-
-function clearAll() {
-  if (!confirm('Clear all saved data?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  initSettings();
-  toast('Cleared');
+  const hw = !!d.workerUrl;
+  document.getElementById('dot-groq').className  = 'dot' + ((d.groqKey||hw)?' active':'');
+  document.getElementById('dot-gemini').className = 'dot' + ((d.geminiKey||hw)?' active':'');
+  document.getElementById('api-keys-section').style.display   = hw ? 'none'  : 'block';
+  document.getElementById('api-status-section').style.display = hw ? 'block' : 'none';
 }
 
 /* ── TABS ── */
-function switchTab(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  event.target.classList.add('active');
+function switchTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.getElementById('scroll-area').scrollTop = 0;
 }
 
-/* ── LANGUAGE ── */
+/* ── LANG ── */
 let chatLang = 'en';
-function setLang(l) {
+function setLang(l){
   chatLang = l;
-  document.getElementById('lang-en').classList.toggle('active', l === 'en');
-  document.getElementById('lang-hi').classList.toggle('active', l === 'hi');
+  document.getElementById('lang-en').classList.toggle('active', l==='en');
+  document.getElementById('lang-hi').classList.toggle('active', l==='hi');
 }
 
 /* ── TOAST ── */
-function toast(msg, dur = 2500) {
+function toast(msg, dur=2500){
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
 }
 
-/* ── GROQ API ── */
-async function callGroq(messages, systemPrompt) {
-  const d = load();
-  if (!d.groqKey && !d.workerUrl) throw new Error('NO_GROQ_KEY');
-  const model = 'llama-3.3-70b-versatile';
-  const workerUrl = d.workerUrl;
-
-  const body = {
-    model,
-    messages: [{ role: 'system', content: systemPrompt }, ...messages],
-    temperature: 0.4,
-    max_tokens: 4096,
-  };
-
-  let res;
-  if (workerUrl) {
-    res = await fetch(workerUrl.replace(/\/+$/, '') + '/groq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } else {
-    res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + d.groqKey,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-  if (!res.ok) { const e = await res.text(); throw new Error('GROQ: ' + e); }
-  const json = await res.json();
-  return json.choices[0].message.content;
+/* ── SAVE KEYS ── */
+function saveKeys(){
+  save({
+    groqKey:   document.getElementById('key-groq').value.trim(),
+    geminiKey: document.getElementById('key-gemini').value.trim(),
+  });
+  const n = document.getElementById('save-notice-keys');
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'), 2000);
+  updateDots();
 }
 
-/* ── GEMINI API ── */
-async function callGemini(messages, systemPrompt) {
-  const d = load();
-  if (!d.geminiKey && !d.workerUrl) throw new Error('NO_GEMINI_KEY');
-  const model = 'gemini-1.5-flash';
-  const workerUrl = d.workerUrl;
-
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
-  }));
-
-  const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents,
-    generationConfig: { temperature: 0.4, maxOutputTokens: 4096 },
-  };
-
-  let res;
-  if (workerUrl) {
-    res = await fetch(workerUrl.replace(/\/+$/, '') + '/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...body, model }),
-    });
-  } else {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${d.geminiKey}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-    );
-  }
-  if (!res.ok) { const e = await res.text(); throw new Error('Gemini: ' + e); }
-  const json = await res.json();
-  return json.candidates[0].content.parts[0].text;
+/* ── SAVE WORKER ── */
+function saveWorkerUrl(){
+  const url = document.getElementById('worker-url').value.trim().replace(/\/+$/,'');
+  save({ workerUrl: url });
+  const n = document.getElementById('worker-save-notice');
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'), 2500);
+  toast(url ? 'Worker URL saved ✓' : 'Worker URL cleared');
+  updateDots();
+  if(url) checkWorkerStatus();
 }
 
-/* ── CALL WITH FALLBACK ── */
-async function callAI(messages, systemPrompt, showBadge) {
+/* ── WORKER STATUS CHECK ── */
+async function checkWorkerStatus(){
   const d = load();
-  const hasWorker = !!d.workerUrl;
-  if (!d.groqKey && !d.geminiKey && !hasWorker) throw new Error('NO_KEYS');
-
-  // If using Worker, GROQ is primary — worker handles keys server-side
-  if (hasWorker) {
-    // Try GROQ first via worker
-    try {
-      if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
-      return await callGroq(messages, systemPrompt);
-    } catch(groqErr) {
-      console.warn('GROQ failed:', groqErr.message);
-      // Only fall to Gemini if GROQ key issue or rate limit — not for network errors
-      {
-        toast('GROQ via Worker failed, trying Gemini…');
-        if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
-        try {
-          return await callGemini(messages, systemPrompt);
-        } catch(gemErr) {
-          throw new Error('Both APIs failed. GROQ: ' + groqErr.message + ' | Gemini: ' + gemErr.message);
-        }
-      }
-      toast('GROQ via Worker failed, trying Gemini…');
-      if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
-      try {
-        return await callGemini(messages, systemPrompt);
-      } catch(gemErr) {
-        throw new Error('Both APIs failed. GROQ: ' + groqErr.message + ' | Gemini: ' + gemErr.message);
-      }
-    }
-  }
-
-  // No worker — use direct API keys
+  if(!d.workerUrl) return;
+  const url = d.workerUrl.replace(/\/+$/,'');
+  const groqEl   = document.getElementById('status-groq');
+  const geminiEl = document.getElementById('status-gemini');
+  const dg = document.getElementById('s-dot-groq');
+  const dgm = document.getElementById('s-dot-gemini');
+  groqEl.textContent   = 'GROQ — checking…';
+  geminiEl.textContent = 'GEMINI — checking…';
   try {
-    if (d.groqKey) {
-      if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
-      return await callGroq(messages, systemPrompt);
-    }
-  } catch(e) {
-    if (d.geminiKey) toast('GROQ failed, trying Gemini…');
-    else throw e;
+    const res = await fetch(url + '/status', { method:'GET' });
+    if(res.ok){
+      const j = await res.json();
+      groqEl.textContent   = j.groq   ? 'GROQ — ✓ Key active'     : 'GROQ — ✗ Key missing in Worker';
+      geminiEl.textContent = j.gemini ? 'GEMINI — ✓ Key active'   : 'GEMINI — ✗ Key missing in Worker';
+      dg.className   = 'dot ' + (j.groq   ? 'active' : 'warn');
+      dgm.className  = 'dot ' + (j.gemini ? 'active' : 'warn');
+    } else { throw new Error('HTTP '+res.status); }
+  } catch(e){
+    groqEl.textContent   = 'GROQ — ✓ Connected via Worker';
+    geminiEl.textContent = 'GEMINI — ✓ Connected via Worker';
+    dg.className = dgm.className = 'dot active';
   }
-  if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
-  return await callGemini(messages, systemPrompt);
+}
+
+/* ── CLEAR ALL ── */
+function clearAll(){
+  if(!confirm('Clear all saved data?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('key-groq').value = '';
+  document.getElementById('key-gemini').value = '';
+  document.getElementById('worker-url').value = '';
+  updateDots();
+  toast('Cleared');
+}
+
+/* ── API CALLS ── */
+async function callGroq(messages, sys){
+  const d = load();
+  if(!d.groqKey && !d.workerUrl) throw new Error('NO_GROQ_KEY');
+  const url = d.workerUrl ? d.workerUrl.replace(/\/+$/,'') + '/groq'
+    : 'https://api.groq.com/openai/v1/chat/completions';
+  const headers = { 'Content-Type':'application/json' };
+  if(!d.workerUrl) headers['Authorization'] = 'Bearer ' + d.groqKey;
+  const body = {
+    model: 'llama-3.3-70b-versatile',
+    messages: [{role:'system',content:sys}, ...messages],
+    temperature: 0.4, max_tokens: 4096,
+  };
+  const res = await fetch(url, { method:'POST', headers, body:JSON.stringify(body) });
+  if(!res.ok){ const e = await res.text(); throw new Error('GROQ: '+e); }
+  const j = await res.json();
+  return j.choices[0].message.content;
+}
+
+async function callGemini(messages, sys){
+  const d = load();
+  if(!d.geminiKey && !d.workerUrl) throw new Error('NO_GEMINI_KEY');
+  const contents = messages.map(m=>({ role: m.role==='assistant'?'model':'user', parts:[{text:m.content}] }));
+  const body = { system_instruction:{parts:[{text:sys}]}, contents, generationConfig:{temperature:0.4,maxOutputTokens:4096} };
+  let res;
+  if(d.workerUrl){
+    res = await fetch(d.workerUrl.replace(/\/+$/,'') + '/gemini', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...body, model:'gemini-1.5-flash'}),
+    });
+  } else {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${d.geminiKey}`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),
+    });
+  }
+  if(!res.ok){ const e = await res.text(); throw new Error('Gemini: '+e); }
+  const j = await res.json();
+  return j.candidates[0].content.parts[0].text;
+}
+
+async function callAI(messages, sys, badgeId){
+  const d = load();
+  const hw = !!d.workerUrl;
+  if(!d.groqKey && !d.geminiKey && !hw) throw new Error('NO_KEYS');
+  function setBadge(who){ if(badgeId){ const el=document.getElementById(badgeId); if(el){el.textContent=who;el.className='api-badge '+(who==='GROQ'?'groq':'gemini');} } }
+  try {
+    setBadge('GROQ');
+    return await callGroq(messages, sys);
+  } catch(ge){
+    console.warn('GROQ failed:', ge.message);
+    try {
+      toast('GROQ failed, trying Gemini…');
+      setBadge('GEMINI');
+      return await callGemini(messages, sys);
+    } catch(me){
+      throw new Error('GROQ: '+ge.message.slice(0,60)+' | Gemini: '+me.message.slice(0,60));
+    }
+  }
 }
 
 /* ── CHAT ── */
 const chatHistory = [];
-const GRAMMAR_SYSTEM_EN = `You are an expert English grammar assistant and writing coach. 
-When the user provides text, analyze it and:
-1. Correct all grammar, spelling, punctuation errors
-2. Show the corrected version clearly
-3. Briefly explain key corrections
-4. Offer style suggestions if helpful
-Respond in English. Be concise and clear.`;
+const SYS_EN = `You are an expert English grammar assistant. When user provides text:
+1. Show the corrected version
+2. List key corrections briefly
+3. Offer style tips if helpful
+Be concise. Respond in English.`;
+const SYS_HI = `आप एक हिंदी व्याकरण सहायक हैं। उपयोगकर्ता का टेक्स्ट सुधारें, मुख्य सुधार बताएं। हिंदी में जवाब दें।`;
 
-const GRAMMAR_SYSTEM_HI = `आप एक विशेषज्ञ हिंदी व्याकरण सहायक और लेखन कोच हैं।
-जब उपयोगकर्ता टेक्स्ट प्रदान करे:
-1. सभी व्याकरण, वर्तनी, विराम चिह्न त्रुटियों को सुधारें
-2. सुधरा हुआ संस्करण स्पष्ट रूप से दिखाएं
-3. मुख्य सुधारों को संक्षेप में समझाएं
-हिंदी में जवाब दें।`;
+function handleKey(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } }
 
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-}
+function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>'); }
 
-function addMsg(role, text, thinking = false) {
+function addMsg(role, text, thinking=false){
   const win = document.getElementById('chat-window');
   const empty = win.querySelector('.empty');
-  if (empty) empty.remove();
+  if(empty) empty.remove();
   const d = document.createElement('div');
-  d.className = 'msg ' + role + (thinking ? ' thinking' : '');
-  if (role === 'bot') {
-    d.innerHTML = `<div class="msg-label">Agent · ${thinking ? '…' : (chatLang === 'en' ? 'EN' : 'HI')}</div>${escHtml(text)}`;
-  } else {
-    d.textContent = text;
-  }
+  d.className = 'msg '+role+(thinking?' thinking':'');
+  if(role==='bot'){
+    d.innerHTML = `<div class="msg-label">Agent · ${thinking?'…':(chatLang==='en'?'EN':'HI')}</div>${escHtml(text)}`;
+  } else { d.textContent = text; }
   win.appendChild(d);
   win.scrollTop = win.scrollHeight;
   return d;
 }
 
-function escHtml(t) {
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
-}
-
-async function sendChat() {
+async function sendChat(){
   const inp = document.getElementById('chat-input');
   const text = inp.value.trim();
-  if (!text) return;
+  if(!text) return;
   const d = load();
-  if (!d.groqKey && !d.geminiKey && !d.workerUrl) { toast('Add Worker URL or API keys in Settings'); switchTab('settings'); return; }
-
+  if(!d.groqKey && !d.geminiKey && !d.workerUrl){
+    toast('Add Worker URL or API keys in Settings');
+    switchTab('settings', document.getElementById('nav-settings'));
+    return;
+  }
   inp.value = '';
   addMsg('user', text);
-  chatHistory.push({ role: 'user', content: text });
-
+  chatHistory.push({role:'user', content:text});
   const btn = document.getElementById('send-btn');
   btn.disabled = true;
-  const thinkEl = addMsg('bot', 'Analyzing…', true);
-
+  const thinkEl = addMsg('bot','Analyzing…',true);
   try {
-    const sys = chatLang === 'hi' ? GRAMMAR_SYSTEM_HI : GRAMMAR_SYSTEM_EN;
-    const reply = await callAI(chatHistory, sys, false);
-    chatHistory.push({ role: 'assistant', content: reply });
+    const sys = chatLang==='hi' ? SYS_HI : SYS_EN;
+    const reply = await callAI(chatHistory, sys, null);
+    chatHistory.push({role:'assistant', content:reply});
     thinkEl.remove();
     addMsg('bot', reply);
-  } catch (e) {
+  } catch(e){
     thinkEl.remove();
-    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : ('Error: ' + e.message.slice(0, 200));
+    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : 'Error: '+e.message.slice(0,200);
     addMsg('bot', msg);
-    if (e.message.includes('NO_KEYS')) setTimeout(() => switchTab('settings'), 800);
   }
   btn.disabled = false;
 }
 
 /* ── TRANSLATE ── */
-const TRANSLATE_SYSTEM = `You are a professional English to Hindi translator.
-Translate the given English text to Hindi accurately and naturally.
-Preserve the original meaning, tone, and structure.
-Return ONLY the Hindi translation — no explanation, no preamble, no original text.`;
+const TRANS_SYS = `You are a professional English to Hindi translator. Translate the given English text to Hindi accurately. Return ONLY the Hindi translation — no explanation, no preamble.`;
 
-function updateCharCount() {
-  const v = document.getElementById('source-area').value;
-  document.getElementById('char-count').textContent = v.length.toLocaleString() + ' chars';
-}
+function updateCharCount(){ document.getElementById('char-count').textContent = document.getElementById('source-area').value.length.toLocaleString()+' chars'; }
 
-async function runTranslate() {
+async function runTranslate(){
   const src = document.getElementById('source-area').value.trim();
-  if (!src) { toast('Enter text to translate'); return; }
+  if(!src){ toast('Enter text to translate'); return; }
   const d = load();
-  if (!d.groqKey && !d.geminiKey && !d.workerUrl) { toast('Add Worker URL or API keys in Settings'); switchTab('settings'); return; }
-
+  if(!d.groqKey && !d.geminiKey && !d.workerUrl){
+    toast('Add Worker URL or API keys in Settings');
+    switchTab('settings', document.getElementById('nav-settings'));
+    return;
+  }
   const outEl = document.getElementById('output-area');
   const statusEl = document.getElementById('trans-status');
-  outEl.value = '';
-  statusEl.textContent = 'Translating…';
-
+  outEl.value = ''; statusEl.textContent = 'Translating…';
   try {
-    const result = await callAI([{ role: 'user', content: src }], TRANSLATE_SYSTEM, true);
+    const result = await callAI([{role:'user',content:src}], TRANS_SYS, 'trans-api-badge');
     outEl.value = result;
-    document.getElementById('out-count').textContent = result.length.toLocaleString() + ' chars';
+    document.getElementById('out-count').textContent = result.length.toLocaleString()+' chars';
     statusEl.textContent = 'Done ✓';
-    setTimeout(() => statusEl.textContent = '', 2000);
-  } catch (e) {
+    setTimeout(()=>statusEl.textContent='', 2000);
+  } catch(e){
     statusEl.textContent = '';
-    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : e.message.slice(0, 60);
-    toast(msg, 3500);
+    toast(e.message.slice(0,80), 4000);
   }
 }
 
-function clearTranslator() {
+function clearTranslator(){
   document.getElementById('source-area').value = '';
   document.getElementById('output-area').value = '';
   document.getElementById('char-count').textContent = '0 chars';
@@ -1043,56 +747,57 @@ function clearTranslator() {
   document.getElementById('trans-status').textContent = '';
 }
 
-function copyText(id) {
+function copyText(id){
   const v = document.getElementById(id).value;
-  if (!v) { toast('Nothing to copy'); return; }
-  navigator.clipboard.writeText(v).then(() => toast('Copied ✓'));
+  if(!v){ toast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(v).then(()=>toast('Copied ✓'));
 }
 
 /* ── INSTALL PWA ── */
 let deferredPrompt = null;
 
-function updateInstallStatus() {
-  const msgEl = document.getElementById('install-status-msg');
-  const btnRow = document.getElementById('install-btn-row');
-  if (!msgEl) return;
-
-  // Already installed as PWA
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-    msgEl.innerHTML = '<span style="color:var(--cyan);">● App is installed and running in standalone mode</span>';
-    if (btnRow) btnRow.style.display = 'none';
+function updateInstallStatus(){
+  const msg  = document.getElementById('install-status-msg');
+  const dot  = document.getElementById('install-dot');
+  const btnR = document.getElementById('install-btn-row');
+  if(!msg) return;
+  if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone){
+    msg.textContent = '● App installed & running in standalone mode';
+    msg.style.color = 'var(--cyan)';
+    dot.className = 'dot active';
+    if(btnR) btnR.style.display = 'none';
     return;
   }
-
-  // Browser will prompt
-  if (deferredPrompt) {
-    msgEl.innerHTML = '<span style="color:var(--yellow);">● Ready to install — click Install Now above</span>';
-    if (btnRow) btnRow.style.display = 'flex';
+  if(deferredPrompt){
+    msg.textContent = '● Ready to install — tap Install Now';
+    msg.style.color = 'var(--yellow)';
+    dot.className = 'dot warn';
+    if(btnR) btnR.style.display = 'block';
     return;
   }
-
-  // Not yet installable or already dismissed
-  msgEl.innerHTML = '<span style="color:var(--text-faint);">Follow the steps below for your device</span>';
-  if (btnRow) btnRow.style.display = 'none';
+  msg.textContent = 'Use browser menu to install (steps below)';
+  msg.style.color = 'var(--text-dim)';
+  dot.className = 'dot';
+  if(btnR) btnR.style.display = 'none';
 }
 
-window.addEventListener('beforeinstallprompt', e => {
+window.addEventListener('beforeinstallprompt', e=>{
   e.preventDefault();
   deferredPrompt = e;
   updateInstallStatus();
 });
 
-window.addEventListener('appinstalled', () => {
+window.addEventListener('appinstalled', ()=>{
   deferredPrompt = null;
-  toast('App installed successfully! ✓');
+  toast('App installed successfully ✓');
   updateInstallStatus();
 });
 
-function installApp() {
-  if (deferredPrompt) {
+function installApp(){
+  if(deferredPrompt){
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choice => {
-      if (choice.outcome === 'accepted') toast('Installing…');
+    deferredPrompt.userChoice.then(c=>{
+      if(c.outcome==='accepted') toast('Installing…');
       deferredPrompt = null;
       updateInstallStatus();
     });
@@ -1101,18 +806,12 @@ function installApp() {
   }
 }
 
-// Run on load
-updateInstallStatus();
-
-/* ── INIT ── */
-initSettings();
-</script>
-
-<!-- PWA Service Worker Registration -->
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+/* ── SERVICE WORKER ── */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
+
+init();
 </script>
 </body>
 </html>
