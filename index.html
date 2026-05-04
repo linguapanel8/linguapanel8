@@ -885,7 +885,7 @@ async function callAI(messages, systemPrompt, showBadge) {
     } catch(groqErr) {
       console.warn('GROQ failed:', groqErr.message);
       // Only fall to Gemini if GROQ key issue or rate limit — not for network errors
-      if (!env || !d.geminiKey) {
+      {
         toast('GROQ via Worker failed, trying Gemini…');
         if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
         try {
