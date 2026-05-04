@@ -629,11 +629,12 @@
     </div>
 
     <div class="settings-section">
-      <div class="settings-title">Worker Node (Cloudflare)</div>
+      <div class="settings-title">Worker Node (Cloudflare) <span style="float:right;" id="worker-save-notice" class="save-notice">✓ Saved</span></div>
       <div class="settings-row">
         <label>Worker URL</label>
         <input class="settings-input" type="url" id="worker-url"
-          placeholder="https://your-worker.workers.dev" oninput="saveKeys()"/>
+          placeholder="https://your-worker.workers.dev"/>
+        <button class="btn primary" onclick="saveWorkerUrl()" style="padding:8px 14px;">Save</button>
       </div>
       <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
         <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
@@ -697,6 +698,16 @@ function updateDots() {
   const d = load();
   document.getElementById('dot-groq').className = 'dot' + (d.groqKey ? ' active' : '');
   document.getElementById('dot-gemini').className = 'dot' + (d.geminiKey ? ' active' : (d.groqKey ? '' : ' warn'));
+}
+
+function saveWorkerUrl() {
+  const url = document.getElementById('worker-url').value.trim();
+  save({ workerUrl: url });
+  const n = document.getElementById('worker-save-notice');
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+  toast('Worker URL saved ✓');
+  updateDots();
 }
 
 function clearAll() {
