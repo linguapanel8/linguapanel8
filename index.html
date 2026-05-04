@@ -587,10 +587,44 @@
   <div class="panel" id="panel-settings">
     <div class="panel-label">Configuration</div>
 
-    <div class="install-box" id="install-box" style="display:none;">
-      <h3>Install to Device</h3>
-      <p>Add LinguaPanel to your home screen for a native app experience.<br/>Works on Android &amp; Desktop — no app store needed.</p>
-      <button class="btn primary" onclick="installApp()">Install App</button>
+    <div class="settings-section">
+      <div class="settings-title">Install App</div>
+
+      <!-- Auto-install button: shown only when browser fires beforeinstallprompt -->
+      <div class="settings-row" id="install-btn-row" style="display:none;">
+        <label style="color:var(--text-dim); font-size:11px;">Browser detected installable app</label>
+        <button class="btn primary" onclick="installApp()" id="install-btn">Install Now</button>
+      </div>
+
+      <div class="settings-row" id="install-status-row">
+        <span id="install-status-msg" style="font-size:11px; color:var(--text-dim); line-height:1.7;"></span>
+      </div>
+
+      <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:10px;">
+        <label style="color:var(--cyan); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">Android (Chrome)</label>
+        <label style="color:var(--text-dim); font-size:11px; line-height:1.7;">
+          1. Open this page in Chrome browser<br/>
+          2. Tap the 3-dot menu (⋮) at top right<br/>
+          3. Tap <strong style="color:var(--text);">Add to Home screen</strong><br/>
+          4. Tap <strong style="color:var(--text);">Install</strong> — done!
+        </label>
+      </div>
+
+      <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:10px; border-top: 1px solid var(--border-dim);">
+        <label style="color:var(--cyan); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">Desktop (Chrome / Edge)</label>
+        <label style="color:var(--text-dim); font-size:11px; line-height:1.7;">
+          1. Open this page in Chrome or Edge<br/>
+          2. Look for the <strong style="color:var(--text);">install icon (⊕)</strong> in the address bar<br/>
+          3. Click it and confirm — done!<br/>
+          <span style="color:var(--text-faint);">Or: 3-dot menu → Cast, save and share → Install page as app</span>
+        </label>
+      </div>
+
+      <div class="settings-row" style="border-top: 1px solid var(--border-dim);">
+        <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
+          Once installed, your Worker URL and settings persist — even after browser cache is cleared.
+        </label>
+      </div>
     </div>
 
     <!-- shown when Worker URL is saved -->
@@ -1017,20 +1051,58 @@ function copyText(id) {
 
 /* ── INSTALL PWA ── */
 let deferredPrompt = null;
+
+function updateInstallStatus() {
+  const msgEl = document.getElementById('install-status-msg');
+  const btnRow = document.getElementById('install-btn-row');
+  if (!msgEl) return;
+
+  // Already installed as PWA
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    msgEl.innerHTML = '<span style="color:var(--cyan);">● App is installed and running in standalone mode</span>';
+    if (btnRow) btnRow.style.display = 'none';
+    return;
+  }
+
+  // Browser will prompt
+  if (deferredPrompt) {
+    msgEl.innerHTML = '<span style="color:var(--yellow);">● Ready to install — click Install Now above</span>';
+    if (btnRow) btnRow.style.display = 'flex';
+    return;
+  }
+
+  // Not yet installable or already dismissed
+  msgEl.innerHTML = '<span style="color:var(--text-faint);">Follow the steps below for your device</span>';
+  if (btnRow) btnRow.style.display = 'none';
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('install-box').style.display = 'block';
+  updateInstallStatus();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  toast('App installed successfully! ✓');
+  updateInstallStatus();
 });
 
 function installApp() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    deferredPrompt.userChoice.then(choice => {
+      if (choice.outcome === 'accepted') toast('Installing…');
+      deferredPrompt = null;
+      updateInstallStatus();
+    });
   } else {
-    toast('Open in Chrome/Edge and use "Add to Home Screen"');
+    toast('Use browser menu → Add to Home Screen');
   }
 }
+
+// Run on load
+updateInstallStatus();
 
 /* ── INIT ── */
 initSettings();
