@@ -627,26 +627,7 @@
       </div>
     </div>
 
-    <div class="settings-section">
-      <div class="settings-title">Model Selection</div>
-      <div class="settings-row">
-        <label>GROQ Model</label>
-        <select class="settings-input" id="groq-model" onchange="saveKeys()">
-          <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-          <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
-          <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
-          <option value="gemma2-9b-it">gemma2-9b-it</option>
-        </select>
-      </div>
-      <div class="settings-row">
-        <label>Gemini Model</label>
-        <select class="settings-input" id="gemini-model" onchange="saveKeys()">
-          <option value="gemini-1.5-flash">gemini-1.5-flash (recommended)</option>
-          <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-          <option value="gemini-2.0-flash-001">gemini-2.0-flash</option>
-        </select>
-      </div>
-    </div>
+
 
     <div class="settings-section">
       <div class="settings-title">Worker Node (Cloudflare) <span style="float:right;" id="worker-save-notice" class="save-notice">✓ Saved</span></div>
@@ -695,8 +676,6 @@ function initSettings() {
   if (d.groqKey) document.getElementById('key-groq').value = d.groqKey;
   if (d.geminiKey) document.getElementById('key-gemini').value = d.geminiKey;
   if (d.workerUrl) document.getElementById('worker-url').value = d.workerUrl;
-  if (d.groqModel) document.getElementById('groq-model').value = d.groqModel;
-  if (d.geminiModel) document.getElementById('gemini-model').value = d.geminiModel;
   updateDots();
 }
 
@@ -705,8 +684,6 @@ function saveKeys() {
     groqKey: document.getElementById('key-groq').value.trim(),
     geminiKey: document.getElementById('key-gemini').value.trim(),
     workerUrl: document.getElementById('worker-url').value.trim(),
-    groqModel: document.getElementById('groq-model').value,
-    geminiModel: document.getElementById('gemini-model').value,
   });
   const n = document.getElementById('save-notice');
   n.classList.add('show');
@@ -738,7 +715,7 @@ async function checkWorkerStatus() {
   groqEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
   geminiEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
   try {
-    const res = await fetch(d.workerUrl + '/status', { method: 'GET' });
+    const res = await fetch(d.workerUrl.replace(/\/+$/, '') + '/status', { method: 'GET' });
     if (res.ok) {
       const json = await res.json();
       groqEl.innerHTML = json.groq
@@ -758,7 +735,7 @@ async function checkWorkerStatus() {
 }
 
 function saveWorkerUrl() {
-  const url = document.getElementById('worker-url').value.trim();
+  const url = document.getElementById('worker-url').value.trim().replace(/\/+$/, '');
   save({ workerUrl: url });
   const n = document.getElementById('worker-save-notice');
   n.classList.add('show');
@@ -802,7 +779,7 @@ function toast(msg, dur = 2500) {
 async function callGroq(messages, systemPrompt) {
   const d = load();
   if (!d.groqKey && !d.workerUrl) throw new Error('NO_GROQ_KEY');
-  const model = d.groqModel || 'llama-3.3-70b-versatile';
+  const model = 'llama-3.3-70b-versatile';
   const workerUrl = d.workerUrl;
 
   const body = {
@@ -814,7 +791,7 @@ async function callGroq(messages, systemPrompt) {
 
   let res;
   if (workerUrl) {
-    res = await fetch(workerUrl + '/groq', {
+    res = await fetch(workerUrl.replace(/\/+$/, '') + '/groq', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -838,7 +815,7 @@ async function callGroq(messages, systemPrompt) {
 async function callGemini(messages, systemPrompt) {
   const d = load();
   if (!d.geminiKey && !d.workerUrl) throw new Error('NO_GEMINI_KEY');
-  const model = d.geminiModel || 'gemini-1.5-flash';
+  const model = 'gemini-1.5-flash';
   const workerUrl = d.workerUrl;
 
   const contents = messages.map(m => ({
@@ -854,7 +831,7 @@ async function callGemini(messages, systemPrompt) {
 
   let res;
   if (workerUrl) {
-    res = await fetch(workerUrl + '/gemini', {
+    res = await fetch(workerUrl.replace(/\/+$/, '') + '/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...body, model }),
