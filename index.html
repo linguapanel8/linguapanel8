@@ -738,7 +738,7 @@ async function checkWorkerStatus() {
   groqEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
   geminiEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
   try {
-    const res = await fetch(d.workerUrl + '/status');
+    const res = await fetch(d.workerUrl + '/status', { method: 'GET' });
     if (res.ok) {
       const json = await res.json();
       groqEl.innerHTML = json.groq
@@ -878,14 +878,29 @@ async function callAI(messages, systemPrompt, showBadge) {
 
   // If using Worker, GROQ is primary — worker handles keys server-side
   if (hasWorker) {
+    // Try GROQ first via worker
     try {
       if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
       return await callGroq(messages, systemPrompt);
-    } catch(e) {
-      // GROQ worker route failed, try Gemini worker route
-      toast('GROQ failed, trying Gemini…');
+    } catch(groqErr) {
+      console.warn('GROQ failed:', groqErr.message);
+      // Only fall to Gemini if GROQ key issue or rate limit — not for network errors
+      if (!env || !d.geminiKey) {
+        toast('GROQ via Worker failed, trying Gemini…');
+        if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
+        try {
+          return await callGemini(messages, systemPrompt);
+        } catch(gemErr) {
+          throw new Error('Both APIs failed. GROQ: ' + groqErr.message + ' | Gemini: ' + gemErr.message);
+        }
+      }
+      toast('GROQ via Worker failed, trying Gemini…');
       if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
-      return await callGemini(messages, systemPrompt);
+      try {
+        return await callGemini(messages, systemPrompt);
+      } catch(gemErr) {
+        throw new Error('Both APIs failed. GROQ: ' + groqErr.message + ' | Gemini: ' + gemErr.message);
+      }
     }
   }
 
@@ -967,7 +982,7 @@ async function sendChat() {
     addMsg('bot', reply);
   } catch (e) {
     thinkEl.remove();
-    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : ('Error: ' + e.message.slice(0, 80));
+    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : ('Error: ' + e.message.slice(0, 200));
     addMsg('bot', msg);
     if (e.message.includes('NO_KEYS')) setTimeout(() => switchTab('settings'), 800);
   }
