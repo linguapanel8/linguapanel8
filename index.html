@@ -641,9 +641,9 @@
       <div class="settings-row">
         <label>Gemini Model</label>
         <select class="settings-input" id="gemini-model" onchange="saveKeys()">
-          <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+          <option value="gemini-1.5-flash">gemini-1.5-flash (recommended)</option>
           <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+          <option value="gemini-2.0-flash-001">gemini-2.0-flash</option>
         </select>
       </div>
     </div>
@@ -875,14 +875,28 @@ async function callAI(messages, systemPrompt, showBadge) {
   const d = load();
   const hasWorker = !!d.workerUrl;
   if (!d.groqKey && !d.geminiKey && !hasWorker) throw new Error('NO_KEYS');
+
+  // If using Worker, GROQ is primary — worker handles keys server-side
+  if (hasWorker) {
+    try {
+      if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
+      return await callGroq(messages, systemPrompt);
+    } catch(e) {
+      // GROQ worker route failed, try Gemini worker route
+      toast('GROQ failed, trying Gemini…');
+      if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
+      return await callGemini(messages, systemPrompt);
+    }
+  }
+
+  // No worker — use direct API keys
   try {
-    if (d.groqKey || hasWorker) {
+    if (d.groqKey) {
       if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
       return await callGroq(messages, systemPrompt);
     }
-  } catch (e) {
-    if (e.message === 'NO_GROQ_KEY') { /* fall through to gemini */ }
-    else if (d.geminiKey || hasWorker) { toast('GROQ failed, trying Gemini…'); }
+  } catch(e) {
+    if (d.geminiKey) toast('GROQ failed, trying Gemini…');
     else throw e;
   }
   if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }

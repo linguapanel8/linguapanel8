@@ -47,16 +47,19 @@ export default {
       }
 
       if (path === '/gemini') {
+        if (!env.GEMINI_API_KEY) {
+          return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not set in Worker' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...CORS },
+          });
+        }
         const model = body.model || 'gemini-1.5-flash';
         delete body.model;
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          }
-        );
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
+        const res = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
         const data = await res.text();
         return new Response(data, {
           status: res.status,
