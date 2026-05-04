@@ -64,6 +64,15 @@ export default {
         });
       }
 
+      if (path === '/status') {
+        return new Response(JSON.stringify({
+          groq: !!env.GROQ_API_KEY,
+          gemini: !!env.GEMINI_API_KEY,
+        }), {
+          headers: { 'Content-Type': 'application/json', ...CORS },
+        });
+      }
+
       return new Response('Not found', { status: 404, headers: CORS });
 
     } catch (err) {

@@ -593,7 +593,27 @@
       <button class="btn primary" onclick="installApp()">Install App</button>
     </div>
 
-    <div class="settings-section">
+    <!-- shown when Worker URL is saved -->
+    <div class="settings-section" id="api-status-section" style="display:none;">
+      <div class="settings-title">API Key Status · via Worker Node</div>
+      <div class="settings-row">
+        <label><span class="api-badge groq">GROQ</span> &nbsp;Primary</label>
+        <span id="status-groq" style="font-size:11px; letter-spacing:0.08em;"></span>
+      </div>
+      <div class="settings-row">
+        <label><span class="api-badge gemini">GEMINI</span> &nbsp;Fallback</label>
+        <span id="status-gemini" style="font-size:11px; letter-spacing:0.08em;"></span>
+      </div>
+      <div class="settings-row">
+        <label style="color:var(--text-faint); font-size:10px; line-height:1.6;">
+          Keys are stored securely in your Cloudflare Worker — not in the browser.
+        </label>
+        <button class="btn" onclick="checkWorkerStatus()" style="padding:7px 14px; white-space:nowrap;">Check Status</button>
+      </div>
+    </div>
+
+    <!-- shown when no Worker URL -->
+    <div class="settings-section" id="api-keys-section">
       <div class="settings-title">API Keys <span style="float:right;" id="save-notice" class="save-notice">✓ Saved</span></div>
       <div class="settings-row">
         <label><span class="api-badge groq">GROQ</span> &nbsp;Primary</label>
@@ -696,8 +716,45 @@ function saveKeys() {
 
 function updateDots() {
   const d = load();
-  document.getElementById('dot-groq').className = 'dot' + (d.groqKey ? ' active' : '');
-  document.getElementById('dot-gemini').className = 'dot' + (d.geminiKey ? ' active' : (d.groqKey ? '' : ' warn'));
+  const hasWorker = !!d.workerUrl;
+  // Toggle API key section vs status section
+  document.getElementById('api-keys-section').style.display = hasWorker ? 'none' : 'block';
+  document.getElementById('api-status-section').style.display = hasWorker ? 'block' : 'none';
+  // Header dots
+  document.getElementById('dot-groq').className = 'dot' + ((d.groqKey || hasWorker) ? ' active' : '');
+  document.getElementById('dot-gemini').className = 'dot' + ((d.geminiKey || hasWorker) ? ' active' : (d.groqKey ? '' : ' warn'));
+  // Status labels
+  if (hasWorker) {
+    document.getElementById('status-groq').innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
+    document.getElementById('status-gemini').innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
+  }
+}
+
+async function checkWorkerStatus() {
+  const d = load();
+  if (!d.workerUrl) return;
+  const groqEl = document.getElementById('status-groq');
+  const geminiEl = document.getElementById('status-gemini');
+  groqEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
+  geminiEl.innerHTML = '<span style="color:var(--text-faint);">Checking…</span>';
+  try {
+    const res = await fetch(d.workerUrl + '/status');
+    if (res.ok) {
+      const json = await res.json();
+      groqEl.innerHTML = json.groq
+        ? '<span style="color:var(--cyan);">● Active</span>'
+        : '<span style="color:var(--yellow);">○ Key missing in Worker</span>';
+      geminiEl.innerHTML = json.gemini
+        ? '<span style="color:var(--cyan);">● Active</span>'
+        : '<span style="color:var(--yellow);">○ Key missing in Worker</span>';
+    } else {
+      throw new Error('Worker returned ' + res.status);
+    }
+  } catch(e) {
+    groqEl.innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
+    geminiEl.innerHTML = '<span style="color:var(--cyan);">● Connected via Worker</span>';
+    toast('Tip: Add /status route to Worker for live check');
+  }
 }
 
 function saveWorkerUrl() {
