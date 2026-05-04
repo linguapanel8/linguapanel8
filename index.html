@@ -801,7 +801,7 @@ function toast(msg, dur = 2500) {
 /* ── GROQ API ── */
 async function callGroq(messages, systemPrompt) {
   const d = load();
-  if (!d.groqKey) throw new Error('NO_GROQ_KEY');
+  if (!d.groqKey && !d.workerUrl) throw new Error('NO_GROQ_KEY');
   const model = d.groqModel || 'llama-3.3-70b-versatile';
   const workerUrl = d.workerUrl;
 
@@ -837,7 +837,7 @@ async function callGroq(messages, systemPrompt) {
 /* ── GEMINI API ── */
 async function callGemini(messages, systemPrompt) {
   const d = load();
-  if (!d.geminiKey) throw new Error('NO_GEMINI_KEY');
+  if (!d.geminiKey && !d.workerUrl) throw new Error('NO_GEMINI_KEY');
   const model = d.geminiModel || 'gemini-1.5-flash';
   const workerUrl = d.workerUrl;
 
@@ -873,15 +873,16 @@ async function callGemini(messages, systemPrompt) {
 /* ── CALL WITH FALLBACK ── */
 async function callAI(messages, systemPrompt, showBadge) {
   const d = load();
-  if (!d.groqKey && !d.geminiKey) throw new Error('NO_KEYS');
+  const hasWorker = !!d.workerUrl;
+  if (!d.groqKey && !d.geminiKey && !hasWorker) throw new Error('NO_KEYS');
   try {
-    if (d.groqKey) {
+    if (d.groqKey || hasWorker) {
       if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GROQ'; document.getElementById('trans-api-badge').className = 'api-badge groq'; }
       return await callGroq(messages, systemPrompt);
     }
   } catch (e) {
-    if (e.message === 'NO_GROQ_KEY' || !d.groqKey) { /* fall through */ }
-    else if (d.geminiKey) { toast('GROQ failed, trying Gemini…'); }
+    if (e.message === 'NO_GROQ_KEY') { /* fall through to gemini */ }
+    else if (d.geminiKey || hasWorker) { toast('GROQ failed, trying Gemini…'); }
     else throw e;
   }
   if (showBadge) { document.getElementById('trans-api-badge').textContent = 'GEMINI'; document.getElementById('trans-api-badge').className = 'api-badge gemini'; }
@@ -934,7 +935,7 @@ async function sendChat() {
   const text = inp.value.trim();
   if (!text) return;
   const d = load();
-  if (!d.groqKey && !d.geminiKey) { toast('Add API keys in Settings first'); switchTab('settings'); return; }
+  if (!d.groqKey && !d.geminiKey && !d.workerUrl) { toast('Add Worker URL or API keys in Settings'); switchTab('settings'); return; }
 
   inp.value = '';
   addMsg('user', text);
@@ -952,7 +953,7 @@ async function sendChat() {
     addMsg('bot', reply);
   } catch (e) {
     thinkEl.remove();
-    const msg = e.message.includes('NO_KEYS') ? 'Add API keys in Settings first.' : ('Error: ' + e.message.slice(0, 80));
+    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : ('Error: ' + e.message.slice(0, 80));
     addMsg('bot', msg);
     if (e.message.includes('NO_KEYS')) setTimeout(() => switchTab('settings'), 800);
   }
@@ -974,7 +975,7 @@ async function runTranslate() {
   const src = document.getElementById('source-area').value.trim();
   if (!src) { toast('Enter text to translate'); return; }
   const d = load();
-  if (!d.groqKey && !d.geminiKey) { toast('Add API keys in Settings first'); switchTab('settings'); return; }
+  if (!d.groqKey && !d.geminiKey && !d.workerUrl) { toast('Add Worker URL or API keys in Settings'); switchTab('settings'); return; }
 
   const outEl = document.getElementById('output-area');
   const statusEl = document.getElementById('trans-status');
@@ -989,7 +990,7 @@ async function runTranslate() {
     setTimeout(() => statusEl.textContent = '', 2000);
   } catch (e) {
     statusEl.textContent = '';
-    const msg = e.message.includes('NO_KEYS') ? 'Add API keys in Settings.' : e.message.slice(0, 60);
+    const msg = e.message.includes('NO_KEYS') ? 'Add Worker URL or API keys in Settings.' : e.message.slice(0, 60);
     toast(msg, 3500);
   }
 }
