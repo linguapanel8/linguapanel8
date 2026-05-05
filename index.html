@@ -329,8 +329,9 @@ header{
   <div class="panel active" id="panel-chat">
     <div class="panel-label">Grammar Agent</div>
     <div class="lang-toggle">
-      <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN · English</button>
-      <button class="lang-btn" id="lang-hi" onclick="setLang('hi')">IN · Hindi</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="lang-hi" onclick="setLang('hi')">HI</button>
+      <button class="lang-btn active" id="lang-both" onclick="setLang('both')">EN+HI</button>
     </div>
     <div class="chat-window" id="chat-window">
       <div class="empty">
@@ -517,11 +518,12 @@ function switchTab(id, btn){
 }
 
 /* ── LANG ── */
-let chatLang = 'en';
+let chatLang = 'both';
 function setLang(l){
   chatLang = l;
   document.getElementById('lang-en').classList.toggle('active', l==='en');
   document.getElementById('lang-hi').classList.toggle('active', l==='hi');
+  document.getElementById('lang-both').classList.toggle('active', l==='both');
 }
 
 /* ── TOAST ── */
@@ -655,6 +657,20 @@ async function callAI(messages, sys, badgeId){
 
 /* ── CHAT ── */
 const chatHistory = [];
+const SYS_BOTH = `You are a bilingual grammar assistant. When the user provides text:
+1. Show the corrected English version clearly
+2. Then show the Hindi translation of the corrected text
+3. Briefly explain key corrections in both languages
+Format your response as:
+✦ Corrected (English):
+[corrected text]
+
+✦ सुधार (Hindi):
+[Hindi translation]
+
+✦ Corrections:
+[brief explanation]`;
+
 const SYS_EN = `You are an expert English grammar assistant. When user provides text:
 1. Show the corrected version
 2. List key corrections briefly
@@ -673,7 +689,7 @@ function addMsg(role, text, thinking=false){
   const d = document.createElement('div');
   d.className = 'msg '+role+(thinking?' thinking':'');
   if(role==='bot'){
-    d.innerHTML = `<div class="msg-label">Agent · ${thinking?'…':(chatLang==='en'?'EN':'HI')}</div>${escHtml(text)}`;
+    d.innerHTML = `<div class="msg-label">Agent · ${thinking?'…':(chatLang==='both'?'EN+HI':chatLang==='hi'?'HI':'EN')}</div>${escHtml(text)}`;
   } else { d.textContent = text; }
   win.appendChild(d);
   win.scrollTop = win.scrollHeight;
@@ -697,7 +713,7 @@ async function sendChat(){
   btn.disabled = true;
   const thinkEl = addMsg('bot','Analyzing…',true);
   try {
-    const sys = chatLang==='hi' ? SYS_HI : SYS_EN;
+    const sys = chatLang==='hi' ? SYS_HI : chatLang==='both' ? SYS_BOTH : SYS_EN;
     const reply = await callAI(chatHistory, sys, null);
     chatHistory.push({role:'assistant', content:reply});
     thinkEl.remove();
